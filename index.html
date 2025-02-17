@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Resume Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: black;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        #resumeForm, #resumeDisplay {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            width: 315px;
+            position: absolute;
+            z-index: 10;
+            text-align: center;
+            box-shadow: 0 0 10px cyan;
+        }
+        #resumeDisplay {
+            display: none;
+            width: 450px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.95);
+            box-shadow: 0 0 15px cyan;
+            text-align: left;
+        }
+        input, textarea, button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+        }
+        button {
+            cursor: pointer;
+            background: linear-gradient(135deg, cyan, black);
+            color: white;
+            font-weight: bold;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px cyan;
+        }
+        button:hover {
+            background: linear-gradient(135deg, black, cyan);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px cyan;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .name{
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    <div id="resumeForm">
+        <h2>Resume Builder</h2>
+        <input type="text" id="name" placeholder="Full Name">
+        <input type="text" id="email" placeholder="Email">
+        <textarea id="skills" placeholder="Skills (comma separated)"></textarea>
+        <button onclick="generateResume()">Generate Resume</button>
+    </div>
+    <div id="resumeDisplay"></div>
+    <script>
+        function generateResume() {
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const skills = document.getElementById("skills").value.split(",").map(skill => skill.trim());
+            
+            const elaboratedSkills = skills.map(skill => {
+                return `<li>${skill} - Proficient in ${skill}, with strong problem-solving capabilities and real-world application experience.</li>`;
+            }).join("\n");
+            
+            document.getElementById("resumeForm").style.display = "none";
+            document.getElementById("resumeDisplay").style.display = "block";
+            document.getElementById("resumeDisplay").innerHTML = `
+                <h2 class="name">${name}</h2>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Skills:</strong></p>
+                <ul>${elaboratedSkills}</ul>
+            `;
+        }
+        
+        // Particle Background Animation
+        const canvas = document.getElementById("particleCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        let particlesArray;
+        const numberOfParticles = 100;
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 5 + 1;
+                this.speedX = Math.random() * 3 - 1.5;
+                this.speedY = Math.random() * 3 - 1.5;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
+                if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+            }
+            draw() {
+                ctx.fillStyle = "cyan";
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.fill();
+            }
+        }
+        
+        function connectParticles() {
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let dx = particlesArray[a].x - particlesArray[b].x;
+                    let dy = particlesArray[a].y - particlesArray[b].y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < 100) {
+                        ctx.strokeStyle = "rgba(0, 255, 255, 0.2)";
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+        
+        function initParticles() {
+            particlesArray = [];
+            for (let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+        
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+            }
+            connectParticles();
+            requestAnimationFrame(animateParticles);
+        }
+        
+        initParticles();
+        animateParticles();
+    </script>
+</body>
+</html>
